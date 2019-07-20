@@ -7,21 +7,21 @@
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 
 // Put your code here.
-@2 
-M=0  //初始化结果的位
-(LOOP)  // 循环
-@1
+@R2
+M=0
+(LOOP)
+@R1
 D=M
 @END
-D;JEQ      //当1 的值为0的时候跳到end
-@0
+D;JEQ
+@R0
 D=M
-@2
-M=D+M   //内部是加法3*2变成 3+3
-@1
-M=M-1   //1是次数每次循环结束-1
+@R2
+M=D+M
+@R1
+M=M-1
 @LOOP
 0;JMP
+(END)
 @END
 0;JMP
-

@@ -12,70 +12,54 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
-// 24576为键盘的地址 16384-24575 刚好8K 为屏幕的地址
-    @24575
-    D = A
+           //a b存储屏幕最小地址和屏幕最大地址
+@SCREEN
+D=A
+@a
+M=D
+@24575
+D=A
+@b
+M=D
 
-    // R0存储屏幕最大地址
-    @0
-    M = D
+(LOOP)  
+@KBD
+D=M
+@LOOP1
+D;JGT
+@LOOP2
+D;JEQ
 
-    // R1存储屏幕当前地址
-    @SCREEN
-    D = A
-    @1
-    M = D
-(LOOP)
-    @KBD
-    D = M
-    @FILL
-    D;JGT
+(LOOP1)
+@a	
+D=M
+@b
+D=D-M
+@LOOP
+D;JEQ
 
-    @CLEAR
-    0;JMP
-(FILL)
-    // 判断屏幕是否为满
-    @0
-    D = M
-    @1
-    D = D - M
-    @LOOP
-    D;JEQ
+@a
+D=M
+A=M
+M=1
+@a
+M=D+1
+@LOOP
+0;JMP
 
-    @1
-    // 缓存当前地址
-    D = M
-    // 将当前地址推入A
-    A = M
-    // 将地址对应的屏幕位置变黑
-    M = -1
+(LOOP2)
+@a	
+D=A
+@SCREEN
+D=D-A
+@LOOP
+D;JEQ
 
-    // 当前地址+1
-    @1
-    M = D + 1
-
-    @LOOP
-    0;JMP
-(CLEAR)
-    // 判断屏幕是否为空
-    @SCREEN
-    D = A
-    @1
-    D = D - M
-    @LOOP
-    D;JEQ
-
-    @1
-    // 缓存当前地址
-    D = M
-    // 将当前地址推入A
-    A = M
-    // 将地址对应的屏幕位置变白
-    M = 0
-
-    // 当前地址-1
-    @1
-    M = D - 1
-
-    @LOOP
-    0;JMP
+@a
+D=M
+A=M
+M=0
+@a
+M=D-1
+@LOOP
+0;JMP
