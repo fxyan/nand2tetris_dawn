@@ -1,4 +1,4 @@
-from code_for_py.Parse import ParseCode
+from Parse import ParseCode
 
 
 def main():
@@ -6,8 +6,10 @@ def main():
         a = input()
         if a == 'end':
             break
-        f = open(a)
-        ParseCode(f, a)
+        f1 = open(a)
+        f2 = open(a)
+        ParseCode(f1, f2, a)
+        # ParseCode(f1, f2, a)
 
 
 if __name__ == '__main__':

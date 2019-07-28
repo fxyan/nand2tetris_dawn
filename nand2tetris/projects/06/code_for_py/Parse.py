@@ -1,17 +1,24 @@
-from .Code import deal_with_c
+from code_for_py.Code import deal_with_c
+from SymbolTable import Symbol_Table
+
 
 class ParseCode(object):
-    def __init__(self, file, name):
+    def __init__(self, pre_file, file, name):
         """
         :param name: 获取到的asm文件
         """
+        self.pre_file = pre_file
         self.file = file
         self.name = name
-        self.seta = {
-            'SP': '0000000000000000'
-            'LCL'
-        }
+        self.count_raw = 0
+        self.count = 16
+        self.symbol = Symbol_Table()
+        self.pre_main()
         self.main()
+
+    def pre_main(self):
+        self.pre_deal_while()
+        # self.deal_while()
 
     def main(self):
         """
@@ -20,52 +27,96 @@ class ParseCode(object):
         """
         file_name = self.name.split('.')[0] + '.hack'
         fn = open(file_name, 'w+')
-        self.pre_deal()
+        # 第二遍
         self.deal_while(fn)
-
         fn.close()
 
-    def pre_deal(self):
-        while True:
-            new_line = self.hasMoreCommands()
-            if new_line is not False:
-                new_line = self.deal_data(new_line)
-                if new_line != '':
-                    line_type = self.commandType(new_line)
-                    if line_type is not False:
-                        if line_type == 'L_COMMAND' or line_type == 'A_COMMAND':
-                            bin_data = self.symbol(new_line)
+    def pre_deal_while(self):
+        for i in range(2):
+            while True:
+                new_line = self.hasMoreCommands(self.pre_file)
+                if new_line is not None:
+                    # 去注释
+                    new_line = self.deal_data(new_line)
+                    if new_line != '':
+                        print('({})'.format(new_line))
+                        line_type = self.commandType(new_line)
+                        if line_type is not False and i == 0:
+                            if line_type == 'L_COMMAND':
+                                self.symbol_p(new_line)
+                                self.count_raw -= 1
                         else:
-                            bin_data = self.deal_c(new_line)
-            else:
-                break
+                            if line_type == 'A_COMMAND':
+                                self.symbol_p(new_line)
+                        self.count_raw += 1
+
+                else:
+                    break
+            self.pre_file.seek(0)
+        self.pre_file.close()
 
     def deal_while(self, file):
+        # 逻辑和上面一样
         while True:
-            new_line = self.hasMoreCommands()
-            if new_line is not False:
+            new_line = self.hasMoreCommands(self.file)
+            if new_line is not None:
                 new_line = self.deal_data(new_line)
                 if new_line != '':
                     line_type = self.commandType(new_line)
                     if line_type is not False:
-                        if line_type == 'L_COMMAND' or line_type == 'A_COMMAND':
-                            bin_data = self.symbol(new_line)
+                        if line_type == 'A_COMMAND':
+                            bin_data = self.get_symbol(new_line)
+                        elif line_type == 'L_COMMAND':
+                            continue
                         else:
                             bin_data = self.deal_c(new_line)
                         file.writelines(bin_data+'\n')
             else:
                 break
 
-    def symbol(self, line):
+    def symbol_p(self, line):
         """
         :param line: A指令
         :return: 返回对应的二进制数
         """
-        line = bin(int(line[1:]))[2:]
-        if len(line) < 16:
-            difference = '0' * (16 - len(line)) + line
-            return difference
-        return line
+        print(line)
+        if line[0] == '@':
+            line = line[1:]
+            if self.symbol.GerAddress(line) is None:
+                if line[0] >= '0' and line[0] <= '9':
+                    difference = bin(int(line))[2:]
+                    if len(difference) < 16:
+                        difference = '0' * (16 - len(difference)) + difference
+                    self.symbol.addEntry(line, difference)
+                else:
+                    # if self.symbol.GerAddress(line) is None:
+                    difference = bin(self.count)[2:]
+                    self.count += 1
+                    if len(difference) < 16:
+                        difference = '0' * (16 - len(difference)) + difference
+                    self.symbol.addEntry(line, difference)
+        else:
+            line = line[1:-1]
+            if self.symbol.GerAddress(line) is None:
+                if line[0] >= '0' and line[0] <= '9':
+                    difference = bin(int(line[1:]))[2:]
+                    if len(difference) < 16:
+                        difference = '0' * (16 - len(difference)) + difference
+                    self.symbol.addEntry(line, difference)
+                else:
+                    difference = bin(self.count_raw)[2:]
+                    print('self.count_raw', difference, self.count_raw)
+                    if len(difference) < 16:
+                        difference = '0' * (16 - len(difference)) + difference
+                    self.symbol.addEntry(line, difference)
+
+    def get_symbol(self, line):
+        if line[0] == '@':
+            line = line[1:]
+            return self.symbol.GerAddress(line)
+        # else:
+        #     line = line[1:-1]
+        #     return self.symbol.GerAddress(line)
 
     def deal_c(self, line):
         """
@@ -75,28 +126,35 @@ class ParseCode(object):
         return deal_with_c(line)
 
     def deal_data(self, line):
+        """
+        :param line: 新的一行的数据
+        :return: 过滤掉注释
+        """
+        # line.strip()
         new_line = ''
         for i in line:
-            if i == '' or i == '/':
+            if i == ' ' or i == '/':
                 break
             new_line += i
         return new_line
 
-    def hasMoreCommands(self):
+    def hasMoreCommands(self, file):
         """
         :return: 新的一行，如果新的一行没有的话返回false
         """
-        f = self.file.readline()
-        if f:
-            return f.strip('\n')
-        return False
+        # f = self.file.readline()
+        # print(f)
+        # if f is not None:
+        #     return f.strip('\n')
+        # return False
+        for line in file:
+            return line.strip().strip('\n')
 
     def commandType(self, new_line):
         new_line = new_line.strip()
-        print(new_line, type)
         if new_line == '' or new_line[:2] == '//':
             return False
-        elif new_line[0] == '(':
+        if new_line[0] == '(':
             return 'L_COMMAND'
         elif new_line[0] == '@':
             return 'A_COMMAND'
