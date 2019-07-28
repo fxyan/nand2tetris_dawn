@@ -1,9 +1,8 @@
-# with open("Add.asm") as fh:
-#     for line in fh:
-#         print(line.strip())
-#         print('\n' in line)
+with open("Add.asm") as fh:
+    for line in fh:
+        print(line.strip())
 
-print(bin(16)[2:], type(bin(16)[2:]))
+# print(bin(16)[2:], type(bin(16)[2:]))
 """
 {'SP': '0000000000000000', 
 'LCL': '0000000000000001',

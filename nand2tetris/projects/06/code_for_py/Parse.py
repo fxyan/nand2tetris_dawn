@@ -18,7 +18,6 @@ class ParseCode(object):
 
     def pre_main(self):
         self.pre_deal_while()
-        # self.deal_while()
 
     def main(self):
         """
@@ -35,6 +34,7 @@ class ParseCode(object):
         for i in range(2):
             while True:
                 new_line = self.hasMoreCommands(self.pre_file)
+                print('({})'.format(new_line))
                 if new_line is not None:
                     # 去注释
                     new_line = self.deal_data(new_line)
@@ -49,7 +49,6 @@ class ParseCode(object):
                             if line_type == 'A_COMMAND':
                                 self.symbol_p(new_line)
                         self.count_raw += 1
-
                 else:
                     break
             self.pre_file.seek(0)
@@ -114,9 +113,6 @@ class ParseCode(object):
         if line[0] == '@':
             line = line[1:]
             return self.symbol.GerAddress(line)
-        # else:
-        #     line = line[1:-1]
-        #     return self.symbol.GerAddress(line)
 
     def deal_c(self, line):
         """
@@ -130,7 +126,7 @@ class ParseCode(object):
         :param line: 新的一行的数据
         :return: 过滤掉注释
         """
-        # line.strip()
+        line.strip()
         new_line = ''
         for i in line:
             if i == ' ' or i == '/':
@@ -142,11 +138,6 @@ class ParseCode(object):
         """
         :return: 新的一行，如果新的一行没有的话返回false
         """
-        # f = self.file.readline()
-        # print(f)
-        # if f is not None:
-        #     return f.strip('\n')
-        # return False
         for line in file:
             return line.strip().strip('\n')
 
