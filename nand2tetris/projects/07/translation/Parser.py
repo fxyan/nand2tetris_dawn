@@ -1,4 +1,5 @@
-from translation.Tra_Code import Code
+from CodewWrite import Code
+
 
 class Parser(object):
     def __init__(self, file, name):
@@ -8,6 +9,7 @@ class Parser(object):
         """
         self.file = file
         self.name = name
+        self.args2_list = ['C_PUSH', 'C_POP', 'C_FUNCTION', 'C_CALL']
         self.main()
 
     def main(self):
@@ -17,33 +19,36 @@ class Parser(object):
         """
         file = open(self.name + '.asm', 'w+')
         while True:
-            new_line = self.havenewCommand()
-            if new_line is not False:
+            new_line = self.havenewCommand(self.file)
+            print('1({})'.format(new_line))
+            if new_line is not None:
                 new_line = self.deal_line(new_line)
                 if new_line != '':
-                    command_list = self.classify(new_line)
-                    Code(file, command_list)
-                    file.writelines(new_line + '\n')
+                    print('2({})'.format(new_line))
+                    command, *args = new_line.split()
+                    command_type = self.commandtype(command)
+                    arg1 = arg2 = None
+                    if command_type != 'C_RETURN':
+                        arg1 = self.arg1(command_type, args)
+                    if command_type in self.args2_list:
+                        arg2 = self.arg2(args)
+                    code = Code(command_type, command, arg1, arg2, self.name)
+                    new_line = code.deal_type()
+                    print('line({})'.format(new_line))
+                    # return [command_type, arg1, arg2]
+                    file.writelines(new_line)
             else:
                 break
         file.close()
-
-    def classify(self, line):
-        command, *args = line.split()
-        command_type = self.commandtype(command)
-        arg1 = arg2 = None
-        if command != 'C_RETURN':
-            arg1 = self.arg1(command, args)
-        args2_list = ['C_PUSH', 'C_POP', 'C_FUNCTION', 'C_CALL']
-        if command in args2_list:
-            arg2 = args[1]
-        return [command, arg1, arg2]
 
     def arg1(self, command, args):
         if command == 'C_ARITHMETIC':
             return command
         else:
             return args[0]
+
+    def arg2(self, args):
+        return args[1]
 
     def commandtype(self, command):
         """
@@ -70,15 +75,13 @@ class Parser(object):
         elif command == 'call':
             return 'C_CALL'
 
-    def havenewCommand(self):
+    def havenewCommand(self, file):
         """
         判断文件是否读完
         :return: 新的一行或者结束符false
         """
-        new_line = self.file.readline()
-        if new_line:
-            return new_line
-        return False
+        for line in file:
+            return line.strip().strip('\n')
 
     def deal_line(self, new_line):
         """
@@ -86,6 +89,19 @@ class Parser(object):
         :param new_line: 新的一行数据
         :return: 处理过得数据
         """
-        new_line.strip('\n')
         new_line = new_line.split('//')[0].strip()
         return new_line
+
+
+def test_line():
+    c = Parser('xx', 'uu')
+    print('({})'.format(c.deal_line('//fe4wfew')))
+    print('({})'.format(c.deal_line('    //ewf')))
+    print('({})'.format(c.deal_line('fejwiojfioew')))
+
+
+if __name__ == '__main__':
+    """
+    运行测试的时候将类中的self.main()注释掉
+    """
+    # test_line()
