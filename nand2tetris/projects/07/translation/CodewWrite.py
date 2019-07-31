@@ -60,7 +60,10 @@ class Code():
             elif self.args1 == 'that':
                 res = '@THAT\nD=M\n@{}\nA=A+D\nD=M\n'.format(self.args2) + self.pushTemplate
             elif self.args1 == 'pointer':
-                res = '@THAT\nD=M\n@{}\nA=A+D\nD=M\n'.format(self.args2) + self.pushTemplate
+                if self.args2 == '0':
+                    res = '@THIS\nD=M\n' + self.pushTemplate
+                else:
+                    res = '@THAT\nD=M\n' + self.pushTemplate
             elif self.args1 == 'temp':
                 res = '@5\nD=A\n@{}\nA=A+D\nD=M\n'.format(self.args2) + self.pushTemplate
         else:
@@ -92,10 +95,7 @@ class Code():
                     res += '@4\n'
                 res += 'M=D\n'
             elif self.args1 == 'static':
-                res = '@SP\nM=M-1\nA=M\nD=M\n@{}.{}\n'.format(self.file_name, self.args2)
-                for i in range(0, int(self.args2)):
-                    res += 'A=A+1\n'
-                res += 'M=D\n'
+                res = '@SP\nM=M-1\nA=M\nD=M\n@{}.{}\nM=D\n'.format(self.file_name, self.args2)
             elif self.args1 == 'temp':
                 res = '@SP\nM=M-1\nA=M\nD=M\n@5\n'
                 for i in range(0, int(self.args2)):
