@@ -30,7 +30,7 @@ class Parser(object):
                     arg1 = arg2 = None
                     if command_type != 'C_RETURN':
                         arg1 = self.arg1(command_type, args)
-                    if command_type in self.args2_list:
+                    if command_type in self.args2_list or command_type == 'C_FUNCTION':
                         arg2 = self.arg2(args)
                     code = Code(command_type, command, arg1, arg2, self.name)
                     new_line = code.deal_type()

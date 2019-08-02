@@ -2,6 +2,7 @@ class Code():
     def __init__(self, command_type, command, args1, args2, file_name):
         self.pushTemplate = '@SP\nA=M\nM=D\n@SP\nM=M+1\n'
         self.index = 0
+        self.return_index = 0
         self.command_type = command_type
         self.command = command
         self.args1 = args1
@@ -118,7 +119,8 @@ class Code():
 
     def WriteInit(self):
         res = '@256\nD=A\n@SP\nM=D\n'
-        res += self.writeCall('Sys.init', 0)
+        res += self.WriteCall('Sys.init', 0)
+        return res
 
     def WriteLabel(self):
         return '({})\n'.format(self.args1)
@@ -132,12 +134,34 @@ class Code():
         return res
 
     def WriteCall(self, functionName, numArgs):
-        pass
+        res = '@return_address{}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n'.format(self.return_index)
+        res += '@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n'
+        res += '@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n'
+        res += '@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n'
+        res += '@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n'
+        res += '@{}\nD=A\n@5\nD=D+A\n@SP\nD=M-D\n@ARG\nM=D\n'.format(numArgs)
+        res += '@SP\nD=M\n@LCL\nM=D\n'
+        res += self.WriteGoto()
+        res += '(return-address{})\n'.format(self.return_index)
+        self.return_index += 1
+
 
     def WriteReturn(self):
-        pass
+        res = '@LCL\nD=M\n@13\nM=D\n'
+        res += '@5\nD=A\n@13\nD=M-D\nA=D\nD=M\n@14\nM=D\n'
+        res += '@SP\nM=M-1\n@SP\nA=M\nD=M\n@ARG\nA=M\nM=D\n'
+        res += '@ARG\nD=M\n@SP\nM=D+1\n'
+        res += '@13\nA=M\nA=A-1\nD=M\n@THAT\nM=D\n'
+        res += '@2\nD=A\n@13\nA=M\nA=A-D\nD=M\n@THIS\nM=D\n'
+        res += '@3\nD=A\n@13\nA=M\nA=A-D\nD=M\n@ARG\nM=D\n'
+        res += '@4\nD=A\n@13\nA=M\nA=A-D\nD=M\n@LCL\nM=D\n'
+        res += 	'@14\nA=M\n"0;JMP\n'
+        return res
 
     def WriteFunction(self):
-        pass
+        res = '({}\n)'.format(self.args1)
+        for i in range(int(self.args2)):
+            res += '@0\nD=A\n' + self.pushTemplate
+        return res
 
 
